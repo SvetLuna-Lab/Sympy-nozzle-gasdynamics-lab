@@ -4,7 +4,10 @@ Basic tests for the numeric wrapper IsentropicNozzleNumeric.
 
 We check that:
 - for M -> 0 the dimensional profiles approach stagnation values
-  (T -> T0, p -> p0, rho -> rho0) within a reasonable tolerance.
+  (T -> T0, p -> p0, rho -> rho0) within a reasonable tolerance;
+- for an increasing Mach sequence (subsonic -> sonic -> supersonic)
+  the static pressure decreases, and the area ratio A/A* behaves
+  as expected (throat minimum at M = 1).
 """
 
 import numpy as np
@@ -38,3 +41,47 @@ def test_dimensional_profiles_at_M_zero():
     assert np.isclose(T, T0, rtol=1e-6, atol=1e-6)
     assert np.isclose(p, p0, rtol=1e-6, atol=1e-6)
     assert np.isclose(rho, rho0, rtol=1e-6, atol=1e-6)
+
+
+def test_pressure_and_area_behavior_with_mach_increase():
+    """
+    For an isentropic flow of a perfect gas:
+
+    - as Mach number increases from subsonic to supersonic,
+      static pressure should decrease;
+    - the area ratio A/A* has a minimum at M = 1 (sonic throat),
+      and is > 1 for both subsonic and supersonic regimes
+      at the same stagnation conditions.
+    """
+    gamma_value = 1.4
+    nozzle = IsentropicNozzleNumeric(gamma_value=gamma_value)
+
+    # Subsonic -> sonic -> supersonic sequence
+    M_seq = np.array([0.2, 0.5, 1.0, 2.0])
+
+    profiles = nozzle.dimensional_profiles(
+        M=M_seq,
+        T0=300.0,
+        p0=101325.0,
+    )
+
+    p = profiles["p"]
+    A_Astar = profiles["A_Astar"]
+
+    # Pressure should strictly decrease as M increases in this range
+    # (isentropic, no shocks, no losses).
+    assert np.all(np.diff(p) < 0), "Static pressure must decrease with Mach in this sequence."
+
+    # Area ratio behavior:
+    # - at M = 1: A/A* = 1 (throat)
+    # - for subsonic and supersonic points: A/A* > 1
+    A_sub = A_Astar[0]  # M = 0.2
+    A_mid_sub = A_Astar[1]  # M = 0.5
+    A_throat = A_Astar[2]  # M = 1.0
+    A_sup = A_Astar[3]  # M = 2.0
+
+    # Throat must be minimum and equal (numerically) to 1
+    assert np.isclose(A_throat, 1.0, rtol=1e-8, atol=1e-8)
+    assert A_sub > A_throat
+    assert A_mid_sub > A_throat
+    assert A_sup > A_throat
