@@ -1,0 +1,40 @@
+# tests/test_numerics.py
+"""
+Basic tests for the numeric wrapper IsentropicNozzleNumeric.
+
+We check that:
+- for M -> 0 the dimensional profiles approach stagnation values
+  (T -> T0, p -> p0, rho -> rho0) within a reasonable tolerance.
+"""
+
+import numpy as np
+
+from symgas.numerics import IsentropicNozzleNumeric
+
+
+def test_dimensional_profiles_at_M_zero():
+    """
+    For M = 0 the isentropic relations should give:
+    T = T0, p = p0 and rho = rho0 (within numerical tolerance).
+    """
+    gamma_value = 1.4
+    T0 = 300.0
+    p0 = 101325.0
+    rho0 = 1.2  # arbitrary reference stagnation density
+
+    nozzle = IsentropicNozzleNumeric(gamma_value=gamma_value)
+
+    profiles = nozzle.dimensional_profiles(
+        M=[0.0],
+        T0=T0,
+        p0=p0,
+        rho0=rho0,
+    )
+
+    T = profiles["T"][0]
+    p = profiles["p"][0]
+    rho = profiles["rho"][0]
+
+    assert np.isclose(T, T0, rtol=1e-6, atol=1e-6)
+    assert np.isclose(p, p0, rtol=1e-6, atol=1e-6)
+    assert np.isclose(rho, rho0, rtol=1e-6, atol=1e-6)
