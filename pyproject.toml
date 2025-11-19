@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "symgas"
+version = "0.1.0"
+description = "SymPy-based lab for quasi-1D nozzle gasdynamics: symbolic isentropic relations, numerical profiles, and engineering plots."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [
+  { name = "Svetlana Romanova" }
+]
+
+dependencies = [
+  "sympy",
+  "numpy",
+  "matplotlib",
+]
+
+keywords = [
+  "sympy",
+  "gasdynamics",
+  "compressible-flow",
+  "nozzle",
+  "rocket-propulsion",
+  "symbolic-math",
+  "scientific-computing",
+]
+
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "License :: OSI Approved :: MIT License",
+  "Intended Audience :: Science/Research",
+  "Intended Audience :: Education",
+  "Topic :: Scientific/Engineering",
+  "Topic :: Scientific/Engineering :: Physics",
+  "Topic :: Scientific/Engineering :: Mathematics",
+]
+
+[project.urls]
+Homepage = "https://github.com/USERNAME/sympy-nozzle-gasdynamics-lab"
+Source = "https://github.com/USERNAME/sympy-nozzle-gasdynamics-lab"
+
+[tool.setuptools]
+packages = ["symgas"]
+package-dir = { "" = "src" }
+
+[tool.setuptools.package-data]
+symgas = []
