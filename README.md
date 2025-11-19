@@ -1,124 +1,251 @@
 # SymPy Nozzle Gasdynamics Lab
 
-Small laboratory project for **quasi-1D nozzle gasdynamics** with a focus on
-**symbolic derivations** using SymPy and clean engineering intuition.
+Small **SymPy-based laboratory** for quasi-1D nozzle gasdynamics.
 
-Core idea:
+The project focuses on:
 
-- start from the standard 1D isentropic relations for a perfect gas;
-- derive key formulas symbolically (Mach number, pressure and temperature ratios,
-  area–Mach relation, etc.);
-- turn symbolic expressions into fast numerical functions;
-- visualize velocity, pressure and temperature profiles along a nozzle.
+- symbolic derivation of key **isentropic relations** for a perfect gas;
+- turning these expressions into **NumPy-based numeric functions**;
+- building and plotting simple **nozzle profiles** (Mach, pressure, temperature);
+- serving as a **learning tool** between textbook formulas and working code.
 
-The project is designed as a learning and exploration tool:
-somewhere between a textbook, a code library, and an engineering notebook.
+This is not a full design code. It is a compact lab: part textbook,
+part notebook, part Python package.
 
 ---
 
 ## Features
 
 - **Symbolic core (SymPy)**  
-  - isentropic flow relations for perfect gas;  
-  - Mach–area relation \(A/A^\*\)(M) for subsonic and supersonic branches;  
-  - pressure and temperature ratios \(p/p_0, T/T_0\) as symbolic expressions.
+  - temperature ratio \(T/T_0(M)\);  
+  - pressure ratio \(p/p_0(M)\);  
+  - density ratio \(\rho/\rho_0(M)\);  
+  - area–Mach relation \(A/A^*(M)\).
 
 - **Numeric wrapper (NumPy)**  
-  - lambdified functions for fast evaluation;  
-  - helpers to build 1D profiles along the nozzle (x, A(x), M(x), p(x), T(x)).
+  - `IsentropicNozzleNumeric` for fast evaluation;  
+  - `dimensional_profiles(...)` to get \(T(x), p(x), \rho(x), A/A^*(x)\) from a Mach profile.
 
 - **Engineering plots (Matplotlib)**  
-  - basic nozzle profiles (Mach, pressure, temperature, density);  
-  - ready to plug into Jupyter notebooks.
+  - Mach number profile along a 1D line or nozzle;  
+  - pressure + temperature profiles on the same x-axis.
 
-- **Notebooks for learning**  
-  - `01_symbolic_derivations.ipynb` — step-by-step derivations;  
-  - `02_nozzle_profiles.ipynb` — example nozzles and flow regimes.
+- **Notebooks for exploration**  
+  - step-by-step symbolic derivations;  
+  - example nozzle profile from subsonic inlet through sonic throat to supersonic exit.
+
+- **Tests**  
+  - basic checks for symbolic expressions and numeric behavior (M → 0, M increasing).
+
+For a more conceptual description (nozzle as **organ** and as **collider-like channel**),
+see `docs/Overview_EN.md` and `docs/Overview_RU.md`.
 
 ---
 
-## Repository structure
+
+## Project structure
 
 ```text
-src/symgas/
-  __init__.py          # package marker
-  symbolic_nozzle.py   # SymPy formulas (symbolic core)
-  numerics.py          # lambdified NumPy functions
-  plots.py             # plotting utilities
+sympy-nozzle-gasdynamics-lab/
+├─ src/
+│  └─ symgas/
+│     ├─ __init__.py              # package entry point, re-exports core helpers
+│     ├─ symbolic_nozzle.py       # SymPy isentropic relations and A/A*(M)
+│     ├─ numerics.py              # IsentropicNozzleNumeric: lambdified NumPy helpers
+│     └─ plots.py                 # basic engineering plots (Mach, p, T)
+├─ notebooks/
+│  ├─ 01_symbolic_derivations.ipynb  # symbolic walkthrough for gamma = 1.4
+│  └─ 02_nozzle_profiles.ipynb       # sample Mach profile and dimensional plots
+├─ docs/
+│  ├─ Overview_EN.md               # extended English overview (organ/collider view)
+│  └─ Overview_RU.md               # Russian overview with the same idea
+├─ tests/
+│  ├─ test_symbolic_nozzle.py     # tests for symbolic relations and gamma-specific forms
+│  └─ test_numerics.py            # tests for numeric wrapper behavior (M → 0, M sequence)
+├─ CHANGELOG.md                   # project history (v0.1.0 and beyond)
+├─ pyproject.toml                 # minimal packaging metadata (symgas package)
+├─ requirements.txt               # runtime dependencies: SymPy, NumPy, Matplotlib
+├─ requirements-dev.txt           # dev dependencies: pytest
+├─ pytest.ini                     # pytest configuration
+├─ .gitignore                     # ignore Python/Jupyter/build artifacts
+└─ README.md                      # this file
 
-notebooks/
-  01_symbolic_derivations.ipynb  # symbolic walkthrough
-  02_nozzle_profiles.ipynb       # sample nozzle profiles
-
-docs/
-  Overview_EN.md       # conceptual overview and usage examples
-
-tests/
-  test_symbolic_nozzle.py  # basic checks for symbolic relations
 
 
 
-Quickstart
+## Installation
 
-Install dependencies:
+Create and activate a virtual environment (optional but recommended), then:
 
 pip install -r requirements.txt
 
 
-Example usage (Python):
+For editable install of the symgas package:
+
+pip install -e .
+
+
+After that you can import symgas from anywhere in that environment.
+
+
+
+## Quick symbolic example
 
 from symgas.symbolic_nozzle import (
     gamma,
     mach,
-    pressure_ratio_isentropic,
     temperature_ratio_isentropic,
-    area_mach_relation
+    pressure_ratio_isentropic,
+    density_ratio_isentropic,
+    area_mach_relation,
+    expressions_for_gamma,
 )
 
-# Set specific heat ratio for air
-g = 1.4
+# Set gamma = 1.4 (air)
+g_val = 1.4
 
-# Example symbolic expressions
-p_p0_expr = pressure_ratio_isentropic(g)
-T_T0_expr = temperature_ratio_isentropic(g)
-A_Astar_expr = area_mach_relation(g)
+T_T0_expr = temperature_ratio_isentropic(gamma).subs({gamma: g_val})
+p_p0_expr = pressure_ratio_isentropic(gamma).subs({gamma: g_val})
+rho_rho0_expr = density_ratio_isentropic(gamma).subs({gamma: g_val})
+A_Astar_expr = area_mach_relation(gamma).subs({gamma: g_val})
 
-print("p/p0 =", p_p0_expr)
-print("T/T0 =", T_T0_expr)
-print("A/A* =", A_Astar_expr)
+print("T/T0(M) =", T_T0_expr)
+print("p/p0(M) =", p_p0_expr)
+print("rho/rho0(M) =", rho_rho0_expr)
+print("A/A*(M) =", A_Astar_expr)
+
+# Or get all simplified expressions at once:
+exprs = expressions_for_gamma(1.4)
+print(exprs["T_T0"])
+print(exprs["A_Astar"])
 
 
-For interactive exploration, open the notebooks:
-
-jupyter lab
-# or
-jupyter notebook
+You can inspect and manipulate these SymPy expressions
+(differentiate, simplify, substitute numeric values, etc.).
 
 
-and run:
+## Quick numeric example
+
+import numpy as np
+
+from symgas.numerics import IsentropicNozzleNumeric
+
+# Create numeric helper for gamma = 1.4
+nozzle = IsentropicNozzleNumeric(gamma_value=1.4)
+
+# Simple Mach profile: from M=0.2 to M=2.0 along 21 stations
+x = np.linspace(0.0, 1.0, 21)
+M = np.linspace(0.2, 2.0, 21)
+
+profiles = nozzle.dimensional_profiles(
+    M=M,
+    T0=300.0,      # stagnation temperature [K]
+    p0=101325.0,   # stagnation pressure [Pa]
+)
+
+T = profiles["T"]
+p = profiles["p"]
+rho = profiles["rho"]
+A_Astar = profiles["A_Astar"]
+
+print("First few T values:", T[:5])
+print("First few p values:", p[:5])
+print("First few A/A* values:", A_Astar[:5])
+
+
+
+## Plotting example (Jupyter)
+
+Inside a notebook:
+
+
+%matplotlib inline
+
+from symgas.plots import (
+    plot_mach_profile,
+    plot_pressure_temperature_profiles,
+)
+
+plot_mach_profile(x, M, title="Mach number along the nozzle", xlabel="x (normalized)")
+plot_pressure_temperature_profiles(
+    x,
+    p,
+    T,
+    title="Pressure and temperature along the nozzle",
+    xlabel="x (normalized)",
+    p_label="Pressure [Pa]",
+    T_label="Temperature [K]",
+)
+
+
+For full examples, see:
 
 notebooks/01_symbolic_derivations.ipynb
 
 notebooks/02_nozzle_profiles.ipynb
 
 
-Status and roadmap
 
-Current status (v0.1.0, prototype):
+## Running tests
 
-symbolic expressions for core isentropic relations;
+Install dev requirements and run pytest:
 
-basic structure for numeric wrappers and plots.
+pip install -r requirements-dev.txt
+pytest
 
-Planned:
 
-helper functions for subsonic / supersonic branches of the area–Mach relation;
+Tests include:
 
-ready-made nozzle profiles (convergent–divergent, purely convergent);
+symbolic sanity checks (M → 0, A/A* at M = 1, consistency for fixed gamma);
 
-more tests for limiting cases (M → 0, M → 1, M → 3+);
-
-optional link to more advanced gasdynamic models.
+numeric sanity checks (dimensional profiles at M = 0, monotonic pressure
+decrease with increasing Mach in a simple sequence).
 
 
 
+## Status and roadmap
+
+Current status (v0.1.0):
+
+symbolic core for isentropic relations and area–Mach relation;
+
+numeric wrapper with dimensional profiles;
+
+basic plots and example notebooks;
+
+tests and minimal packaging via pyproject.toml.
+
+Possible next steps:
+
+helper functions for subsonic/supersonic branches of A/A*(M);
+
+simple x → A(x) nozzle geometries and corresponding Mach distributions;
+
+basic loss models (non-ideal expansion, friction) as extensions;
+
+more detailed teaching notebooks for students.
+
+
+
+## Versioning and changelog
+
+This project follows a simple semantic-style versioning:
+
+- **MAJOR** — breaking changes in the API or project structure,
+- **MINOR** — new features that stay backward-compatible,
+- **PATCH** — small fixes and internal improvements.
+
+The current version is **`v0.1.0`**, which introduces the initial
+symbolic core, numeric wrapper, plots, notebooks and packaging
+for the `symgas` lab.
+
+All notable changes are documented in `CHANGELOG.md`.  
+For tagged versions and downloadable archives, see the GitHub
+**Releases** section.
+
+
+
+## License
+
+This project is released under the MIT License.
+See the LICENSE file for full text.
